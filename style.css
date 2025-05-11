@@ -1,0 +1,280 @@
+/* General styling for the to-do container */
+#todo-list-container {
+  font-family: 'Poppins', 'Helvetica Neue', sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+  width: 340px;
+  position: fixed;
+  z-index: 10001;
+  color: #333;
+  max-height: 80vh; /* Use viewport height instead of fixed pixels */
+  overflow: hidden; /* Container itself shouldn't scroll */
+  transition: all 0.3s ease;
+  flex-direction: column;
+}
+
+#todo-list-container.visible {
+  display: flex !important;
+}
+
+#todo-list-container h3 {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-size: 1.4em;
+  letter-spacing: 0.5px;
+}
+
+#todo-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  border-bottom: 2px solid rgba(44, 62, 80, 0.1);
+  padding-bottom: 12px;
+  flex-shrink: 0;
+}
+
+#date-display {
+  font-size: 0.85em;
+  color: #7f8c8d;
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+#todo-input {
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 12px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
+  font-size: 0.95em;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+#todo-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+}
+
+#add-todo-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(to right, #3498db, #2980b9);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+#add-todo-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(to right, #3498db, #1a5276);
+}
+
+#add-todo-btn:active {
+  transform: translateY(1px);
+}
+
+#todo-items {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 20px;
+  overflow-y: auto; /* Only the list should scroll */
+  overflow-x: hidden;
+  flex: 1; /* Take remaining space */
+  max-height: calc(80vh - 180px); /* Calculate remaining space */
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+}
+
+#todo-items::-webkit-scrollbar {
+  display: none; /* For Webkit browsers */
+}
+
+#todo-items li {
+  padding: 14px 16px;
+  background-color: white;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  word-break: break-word;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  position: relative;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+#todo-items li:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#todo-items li .todo-text {
+  flex-grow: 1;
+  margin-right: 10px;
+  font-size: 0.95em;
+  color: #2c3e50;
+  transition: color 0.2s ease;
+  position: relative;
+  padding-left: 25px;
+}
+
+#todo-items li .text-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+#todo-items li .todo-text::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+#todo-items li.completed .todo-text::before {
+  border-color: #2ecc71;
+  background-color: #2ecc71;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='10' height='8' viewBox='0 0 10 8'%3e%3cpath fill='%23fff' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#todo-items li.completed .todo-text {
+  text-decoration: line-through;
+  color: #95a5a6;
+  opacity: 0.7;
+}
+
+#todo-items li.completed {
+  background-color: #f8f9fa;
+}
+
+#todo-items li .date-badge {
+  font-size: 0.7em;
+  color: #7f8c8d;
+  display: block;
+  margin-top: 3px;
+}
+
+#todo-items li .edit-input {
+  flex-grow: 1;
+  width: 100%;
+  margin-right: 10px;
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  outline: none;
+  transition: all 0.2s ease;
+  padding-left: 25px;
+  background-color: #f8f9fa;
+}
+
+#todo-items li .edit-input:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  background-color: white;
+}
+
+#todo-items li .buttons-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#todo-items li .edit-btn,
+#todo-items li .delete-btn {
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 0.8em;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#todo-items li .edit-btn {
+  background-color: #3498db;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+#todo-items li .edit-btn::before {
+  content: "✎";
+  font-size: 14px;
+}
+
+#todo-items li .edit-btn:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+#todo-items li .delete-btn {
+  background-color: #e74c3c;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+#todo-items li .delete-btn::before {
+  content: "×";
+  font-size: 20px;
+  line-height: 0.5;
+}
+
+#todo-items li .delete-btn:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Empty state */
+#todo-items:empty::after {
+  content: "No tasks yet. Add your first task!";
+  display: block;
+  text-align: center;
+  color: #95a5a6;
+  padding: 20px 0;
+  font-style: italic;
+  font-size: 0.9em;
+}
