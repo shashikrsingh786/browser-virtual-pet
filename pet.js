@@ -7,18 +7,70 @@ function injectCSS(cssPath) {
   document.head.appendChild(link);
 }
 
+// Initialize extension state (enabled by default)
+let isExtensionEnabled = true;
+
+// Load extension state from storage
+chrome.storage.sync.get('isExtensionEnabled', function(data) {
+  if (data.hasOwnProperty('isExtensionEnabled')) {
+    isExtensionEnabled = data.isExtensionEnabled;
+    if (!isExtensionEnabled) {
+      hideExtensionElements();
+    }
+  }
+});
+
+// Function to save extension state
+function saveExtensionState(enabled) {
+  chrome.storage.sync.set({isExtensionEnabled: enabled}, function() {
+    if (chrome.runtime.lastError) {
+      console.error('Error saving extension state:', chrome.runtime.lastError);
+    }
+  });
+}
+
+// Function to show all extension elements
+function showExtensionElements() {
+  pet.style.display = 'block';
+  if (todoContainer.classList.contains('visible')) {
+    todoContainer.style.display = 'flex';
+  }
+  // startPetMovement();
+}
+
+// Function to hide all extension elements
+function hideExtensionElements() {
+  pet.style.display = 'none';
+  todoContainer.style.display = 'none';
+  stopPetMovement();
+}
+
+// Function to toggle extension state
+function toggleExtension() {
+  isExtensionEnabled = !isExtensionEnabled;
+  
+  if (isExtensionEnabled) {
+    showExtensionElements();
+  } else {
+    hideExtensionElements();
+  }
+  
+  saveExtensionState(isExtensionEnabled);
+}
+
 // Inject the stylesheet
 injectCSS('style.css');
 const pet = document.createElement('img');
-pet.src = chrome.runtime.getURL('pet.gif'); // Ensure pet.gif is in your project directory
+pet.src = chrome.runtime.getURL('pet2.gif'); // Ensure pet.gif is in your project directory
 pet.style.position = 'fixed';
 pet.style.bottom = '0px';
 pet.style.left = '100px';
 pet.style.zIndex = '10000';
-pet.style.width = '100px';
+pet.style.height = 'auto';
+pet.style.width = '200px';
 document.body.appendChild(pet);
 
-// To-Do List Container
+// To-Do List Container krn
 const todoContainer = document.createElement('div');
 todoContainer.id = 'todo-list-container';
 todoContainer.style.position = 'fixed';
@@ -27,13 +79,20 @@ todoContainer.style.left = '100px';
 todoContainer.style.display = 'none'; // Initially hidden
 todoContainer.style.zIndex = '10001'; // Above the pet
 todoContainer.innerHTML = `
-<div id="todo-header">
-  <h3>My To-Do List</h3>
-  <div id="date-display" style="font-size: 0.8em; text-align: right; margin-bottom: 5px;"></div>
+<div class="todo-content">
+  <div id="todo-header">
+    <h3>My To-Do List</h3>
+    <div id="date-display" style="font-size: 0.8em; text-align: right; margin-bottom: 5px;"></div>
+  </div>
+  <input type="text" id="todo-input" placeholder="Add a new task...">
+  <button id="add-todo-btn">Add</button>
+  <ul id="todo-items"></ul>
+  <div id="info-icon">i</div>
 </div>
-<input type="text" id="todo-input" placeholder="Add a new task...">
-<button id="add-todo-btn">Add</button>
-<ul id="todo-items"></ul>
+<div id="creator-info">
+  <h2>Created By</h2>
+  <p>Shashi Kumar Singh</p>
+</div>
 `;
 document.body.appendChild(todoContainer);
 
@@ -46,7 +105,13 @@ function startPetMovement() {
   if (movementIntervalId) clearInterval(movementIntervalId); // Clear existing interval if any
   movementIntervalId = setInterval(() => {
     const left = parseInt(pet.style.left);
-    if (left < 0 || left > window.innerWidth - 100) dir *= -1;
+    if (left < 0 || left > window.innerWidth - 100) {
+      dir *= -1;
+      // Flip the pet image horizontally when changing direction
+      pet.style.transform = dir === 1 ? 'scaleX(1)' : 'scaleX(-1)';
+    }
+    // Always keep pet at the very bottom
+    pet.style.bottom = '0px';
     pet.style.left = `${left + 5 * dir}px`;
   }, 50);
   isPetMoving = true;
@@ -67,7 +132,6 @@ function toggleTodoList() {
     todoContainer.style.bottom = `${window.innerHeight - petRect.top + 10}px`; // 10px above pet
     updateDateDisplay(); // Update date when showing
     loadTodos(); // Load todos when showing
-    
     // Add click outside event listener
     setTimeout(() => {
       document.addEventListener('click', closeOnClickOutside);
@@ -77,6 +141,7 @@ function toggleTodoList() {
     todoContainer.classList.remove('visible');
     // Remove click outside event listener
     document.removeEventListener('click', closeOnClickOutside);
+    // Do NOT startPetMovement here
   }
 }
 
@@ -84,6 +149,7 @@ function toggleTodoList() {
 function closeOnClickOutside(e) {
   if (!todoContainer.contains(e.target) && e.target !== pet) {
     toggleTodoList();
+    startPetMovement(); // Resume pet movement when clicking outside
   }
 }
 
@@ -91,9 +157,6 @@ pet.addEventListener('click', (e) => {
   e.stopPropagation(); // Prevent document click from immediately closing
   if (isPetMoving) {
     stopPetMovement();
-  } else {
-    // If pet is already stopped, clicking again could resume movement or just keep to-do open
-    // For now, let's assume clicking a stopped pet does nothing to its movement
   }
   toggleTodoList();
 });
@@ -105,6 +168,10 @@ todoContainer.addEventListener('click', (e) => {
 
 // Start pet movement initially
 startPetMovement();
+
+// On initial setup, make sure pet is facing right and at the bottom
+pet.style.transform = 'scaleX(1)';
+pet.style.bottom = '0px';
 
 // --- To-Do List Functionality ---
 const todoInput = document.getElementById('todo-input');
@@ -118,14 +185,18 @@ function saveTodos() {
     const dateSpan = li.querySelector('span.date-badge');
     
     if (textSpan) {
-      todos.push({ 
-        text: textSpan.textContent, 
+      todos.push({
+        text: textSpan.textContent,
         completed: li.classList.contains('completed'),
         date: dateSpan ? dateSpan.dataset.timestamp : new Date().toISOString()
       });
     }
   });
-  localStorage.setItem('todos', JSON.stringify(todos));
+  chrome.storage.sync.set({todos: todos}, function() {
+    if (chrome.runtime.lastError) {
+      console.error('Error saving todos:', chrome.runtime.lastError);
+    }
+  });
 }
 
 function updateDateDisplay() {
@@ -158,9 +229,15 @@ function formatDate(dateString) {
 
 function loadTodos() {
   todoItemsUl.innerHTML = ''; // Clear existing items
-  const todos = JSON.parse(localStorage.getItem('todos') || '[]');
-  todos.forEach(todoData => {
-    addTodoItem(todoData.text, todoData.completed, todoData.date);
+  chrome.storage.sync.get('todos', function(data) {
+    if (chrome.runtime.lastError) {
+      console.error('Error loading todos:', chrome.runtime.lastError);
+      return;
+    }
+    const todos = data.todos || [];
+    todos.forEach(todoData => {
+      addTodoItem(todoData.text, todoData.completed, todoData.date);
+    });
   });
 }
 
@@ -296,3 +373,45 @@ if (todoInput) {
 // Load todos on initial script load if the list was somehow left open (though it's hidden by default)
 // Or, more practically, if we want to manage todos even if the pet isn't clicked yet.
 // For now, todos are loaded when the list is shown.
+
+// --- Toggle Pet Visibility Functionality ---
+function togglePetVisibility() {
+  if (pet.style.display === 'none') {
+    pet.style.display = 'block';
+  } else {
+    pet.style.display = 'none';
+  }
+}
+
+// Listen for Ctrl+Enter to toggle pet visibility
+window.addEventListener('keydown', function(e) {
+  if (e.altKey && e.key === 'Enter') {
+    togglePetVisibility();
+  }
+});
+
+// Add keyboard shortcut to toggle extension (Alt+Shift+E)
+window.addEventListener('keydown', function(e) {
+  if (e.altKey && e.shiftKey && e.key === 'E') {
+    toggleExtension();
+  }
+});
+
+// Add info icon click handler
+const infoIcon = todoContainer.querySelector('#info-icon');
+infoIcon.addEventListener('click', (e) => {
+  e.stopPropagation();
+  todoContainer.classList.toggle('flipped');
+});
+
+// Add click handler to creator info to flip back
+const creatorInfo = todoContainer.querySelector('#creator-info');
+creatorInfo.addEventListener('click', (e) => {
+  e.stopPropagation();
+  todoContainer.classList.remove('flipped');
+});
+
+// Apply extension state on load
+if (!isExtensionEnabled) {
+  hideExtensionElements();
+}
