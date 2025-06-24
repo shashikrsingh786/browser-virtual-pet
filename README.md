@@ -4,6 +4,8 @@ A delightful Chrome extension featuring an animated pet that walks across your b
 
 
 ![image](https://github.com/user-attachments/assets/dc805104-9b8c-4d7e-adf6-17219722c5e2)
+![image](https://github.com/user-attachments/assets/4d575068-0e52-4188-9663-5398ed26bff6)
+
 
 ---
 
