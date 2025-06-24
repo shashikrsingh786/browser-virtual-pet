@@ -35,7 +35,7 @@ function showExtensionElements() {
   if (todoContainer.classList.contains('visible')) {
     todoContainer.style.display = 'flex';
   }
-  // startPetMovement();
+  startMessageSystem();
 }
 
 // Function to hide all extension elements
@@ -43,6 +43,7 @@ function hideExtensionElements() {
   pet.style.display = 'none';
   todoContainer.style.display = 'none';
   stopPetMovement();
+  stopMessageSystem();
 }
 
 // Function to toggle extension state
@@ -67,7 +68,7 @@ pet.style.bottom = '0px';
 pet.style.left = '100px';
 pet.style.zIndex = '10000';
 pet.style.height = 'auto';
-pet.style.width = '200px';
+pet.style.width = '150px';
 document.body.appendChild(pet);
 
 // To-Do List Container krn
@@ -410,6 +411,151 @@ creatorInfo.addEventListener('click', (e) => {
   e.stopPropagation();
   todoContainer.classList.remove('flipped');
 });
+
+// Cat messages functionality
+const randomMessages = [
+  "Mew~ tum phir se kaam mein kho gaye? Main bhi attention chahti hoon~ 😿💻",
+  "Prrr~ mujhe laga tum mujhe treat doge... par tum toh sirf bugs fix kar rahe ho! 🐾😾",
+  "Mewww! Tumhara screen time 2 ghante cross ho gaya! Break time bacha lo mujhe~ 🐱⏰",
+  "Nyaa~ kya tum mujhe ignore kar rahe ho? I'm gonna sit on your tab now! 😼🖱️",
+  "Hehe~ tum focus mein ho... toh main thoda dance kar leti hoon yahan! 💃🐈✨",
+  "Tumhare face pe thodi si thakan hai... ek stretch toh banta hai~ Mew~ 🐱🧘",
+  "Kaam kaam kaam! Aur main? Ek lonely billi hoon is browser mein! 😿📂",
+  "Nya~ mujhe bhi kuch type karne do! Let me code: 'console.purr(\"Hi Shashi~\")' 🐾😹",
+  "Meeeeow~ kal raat tum late the... main sab dekh rahi thi! 😼🌙",
+  "Tum kuch cute dekh rahe ho… oh wait, that's me! 😽🖥️",
+  "Mewwwww! Ek naya tab khola? Mujhe laga tum mujhe dekh rahe ho 😾🔍",
+  "Shashi! Tumne mujhe naam nahi diya abhi tak! Mew~ naam do warna main tumhara tab close kar dungi 😼💣"
+];
+
+const fixedMessages = {
+  "13:00": "Meeeow~ 1 baj gaya hai, Shashi! Tumhare pet ka toh lunch ho gaya, ab tumhara kab hoga? 🍱🐾 Don't skip it warna main tumhari keyboard pe let jaungi!",
+  "16:00": "🐈 4 baj gaye! Tumhari aankhon ka zoom level badh gaya hai... It's coffee o'clock! ☕🐈 Chal, ek garam si sip le lo... warna main tumhara mouse leke bhaag jaungi~"
+};
+
+let messageIntervalId;
+let messageContainer;
+
+// Create message container
+function createMessageContainer() {
+  messageContainer = document.createElement('div');
+  messageContainer.style.position = 'fixed';
+  messageContainer.style.bottom = '220px';
+  messageContainer.style.left = '100px';
+  messageContainer.style.zIndex = '10002';
+  messageContainer.style.display = 'none';
+  messageContainer.style.maxWidth = '300px';
+  messageContainer.style.padding = '12px 16px';
+  messageContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+  messageContainer.style.border = '2px solid #ff69b4';
+  messageContainer.style.borderRadius = '20px';
+  messageContainer.style.fontSize = '14px';
+  messageContainer.style.fontFamily = 'Arial, sans-serif';
+  messageContainer.style.color = '#333';
+  messageContainer.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+  messageContainer.style.transform = 'translateY(10px)';
+  messageContainer.style.opacity = '0';
+  messageContainer.style.transition = 'all 0.3s ease';
+  messageContainer.style.wordWrap = 'break-word';
+  
+  // Add a small tail to the speech bubble
+  const tail = document.createElement('div');
+  tail.style.position = 'absolute';
+  tail.style.bottom = '-8px';
+  tail.style.left = '30px';
+  tail.style.width = '0';
+  tail.style.height = '0';
+  tail.style.borderLeft = '8px solid transparent';
+  tail.style.borderRight = '8px solid transparent';
+  tail.style.borderTop = '8px solid #ff69b4';
+  messageContainer.appendChild(tail);
+  
+  document.body.appendChild(messageContainer);
+}
+
+// Show message with animation
+function showMessage(message) {
+  if (!isExtensionEnabled) return;
+  
+  if (!messageContainer) {
+    createMessageContainer();
+  }
+  
+  messageContainer.textContent = message;
+  messageContainer.style.display = 'block';
+  
+  // Position near pet
+  const petRect = pet.getBoundingClientRect();
+  messageContainer.style.left = `${petRect.left}px`;
+  messageContainer.style.bottom = `${window.innerHeight - petRect.top + 30}px`;
+  
+  // Animate in
+  setTimeout(() => {
+    messageContainer.style.opacity = '1';
+    messageContainer.style.transform = 'translateY(0)';
+  }, 10);
+  
+  // Hide after 8 seconds
+  setTimeout(() => {
+    hideMessage();
+  }, 1000*30);
+}
+
+// Hide message with animation
+function hideMessage() {
+  if (messageContainer && messageContainer.style.display !== 'none') {
+    messageContainer.style.opacity = '0';
+    messageContainer.style.transform = 'translateY(-10px)';
+    
+    setTimeout(() => {
+      messageContainer.style.display = 'none';
+    }, 300);
+  }
+}
+
+// Check for fixed time messages
+function checkFixedMessages() {
+  const now = new Date();
+  const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+  
+  if (fixedMessages[timeString]) {
+    showMessage(fixedMessages[timeString]);
+  }
+}
+
+// Show random message
+function showRandomMessage() {
+  if (!isExtensionEnabled) return;
+  
+  const randomIndex = Math.floor(Math.random() * randomMessages.length);
+  showMessage(randomMessages[randomIndex]);
+}
+
+// Start message system
+function startMessageSystem() {
+  // Check for fixed messages every minute
+  setInterval(checkFixedMessages, 60000);
+  
+  // Show random messages every 20 minutes (1200000 ms)
+  messageIntervalId = setInterval(showRandomMessage, 1200000);
+  
+  // Check immediately for fixed messages
+  checkFixedMessages();
+}
+
+// Stop message system
+function stopMessageSystem() {
+  if (messageIntervalId) {
+    clearInterval(messageIntervalId);
+    messageIntervalId = null;
+  }
+  hideMessage();
+}
+
+// Start message system initially if extension is enabled
+if (isExtensionEnabled) {
+  startMessageSystem();
+}
 
 // Apply extension state on load
 if (!isExtensionEnabled) {
